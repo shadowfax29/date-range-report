@@ -1,0 +1,132 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Manrope', sans-serif;
+
+}
+
+html,body{
+    background-color:  #E8E2FF;
+    display: inline-table;
+   place-items: center;
+   box-sizing: border-box;
+   
+   padding: 12px;
+    
+}
+.report{
+    background-color: #6F5ACD;
+   
+   
+    border-radius: 10px;
+}
+.button {
+    position: relative;
+    width: 150px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border: 1px solid #34974d;
+    background-color: #3aa856;
+    margin: 10px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+   
+  }
+  .button.enabled {
+    /* Styles for the button when it's enabled */
+    opacity: 1;
+    transform: translateY(0);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+  
+  .button, .button__icon, .button__text {
+    transition: all 0.3s;
+  }
+  
+  .button .button__text {
+    transform: translateX(30px);
+    color: #fff;
+    font-weight: 600;
+  }
+  
+  .button .button__icon {
+    position: absolute;
+    transform: translateX(109px);
+    height: 100%;
+    width: 39px;
+    background-color: #34974d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .button__icon{
+    left:0;
+  }
+  .button .svg {
+    width: 30px;
+    stroke: #fff;
+  }
+  
+  .button:hover {
+    background: #34974d;
+  }
+  
+  .button:hover .button__text {
+    color: transparent;
+  }
+  
+  .button:hover .button__icon {
+    width: 148px;
+    transform: translateX(0);
+  }
+  
+  .button:active .button__icon {
+    background-color: #2e8644;
+  }
+  
+  .button:active {
+    border: 1px solid #2e8644;
+  }
+
+  .excluded-date {
+    color: red; /* or any other color to indicate exclusion */
+    margin-left: 5px;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1em;
+  border: 0px solid transparent;
+  background-color: rgba(100,77,237,0.08);
+  border-radius: 1.25em;
+  cursor: pointer;
+  transition: all 0.2s linear;
+ }
+ 
+ 
+ 
+ #select-date-message {
+  display: none; 
+  color: red; 
+  
+}
+
+
+ 
+ 

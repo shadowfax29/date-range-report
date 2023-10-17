@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300&family=Nunito:wght@300&family=Onest:wght@200&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <button type="button" class="button" id="add" disabled>
+        <span class="button__text" >Add New</span>
+        <span class="button__icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24"
+                stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" height="24"
+                fill="none" class="svg">
+                <line y2="19" y1="5" x2="12" x1="12"></line>
+                <line y2="12" y1="12" x2="19" x1="5"></line>
+            </svg></span>
+    </button>
+    <div class="report">
+
+        <div id="table"></div>
+    </div>
+
+
+    <script src="react-development.js"></script>
+    <script src="react-dom.js"></script>
+    <script src="babel.js"></script>
+    <script type="text/babel">
+        const root = document.getElementById('table');
+        const add = document.getElementById('add')
+        const { useState } = React;
+        const { useEffect } = React
+        function App() {
+            const [Astate, setAstate] = useState('N/A');//action state
+            const [idstate, setidstate] = useState('N/A');//id state
+            const [start, setStart] = useState(''); //startdate state
+            const [end, setEnd] = useState(''); // enddate state
+            const [selectedMonth, setSelectedMonth] = useState('N/A');//month state
+            const [selectedYear, setSelectedYear] = useState('N/A');//year state
+            const [excludedDates, setExcludedDates] = useState([]);//exclude state
+            const [numberOfLeads, setNumberOfLeads] = useState(0);//number of leads state
+            const [expected, setexpected] = useState(0)//drr state
+            const [numberOfDays, setNumberOfDays] = useState(0);//number of days state
+            const [minEndDate, setMinEndDate] = useState('');//min date
+            const [items, setItems] = useState([]); // Initialize an empty array for items
+
+
+    if (excludedDates.length >= 1 && expected!==0 && numberOfLeads!==0) 
+                {
+                    add.disabled=false;
+                    // add.style.boxShadow= "0 15px 30px rgba(0, 0, 0, 0.5)"
+                    add.classList.add("enabled")
+
+                }
+                else{
+                    add.disabled=true
+                    // add.style.boxShadow= "none"
+                    add.classList.remove("enabled")
+                }
+
+            
+
+            //for removing row
+            const handleRemove = (indextoremove) => {
+                setItems(items.filter((item, index) => {
+                    if (index !== indextoremove) {
+                        return item
+                    }
+                }))
+            }
+
+
+
+            //adding a row
+            add.addEventListener('click', () => {
+
+              
+                const currentDate = new Date(); // Get the current date and time
+                const formattedCurrentDate = currentDate.toISOString().split(/[TZ]/);
+                const newItem = {
+                    action: Astate,
+                    id: idstate,
+                    start_date: start,
+                    end_date: end,
+                    months: selectedMonth,
+                    years: selectedYear,
+                    excluded_dates: excludedDates,
+                    days: numberOfDays,
+                    lead_count: numberOfLeads,
+                    expected_DRR: expected,
+                    current: formattedCurrentDate,
+                };
+// Update the items state by adding the new item
+setItems([...items, newItem]);
+               
+ 
+                setExcludedDates([]);
+                setNumberOfLeads(0);
+                setNumberOfDays(0);
+                setStart('')
+                setEnd('')
+                setSelectedMonth('N/A')
+                setSelectedYear('N/A')
+                setexpected(0);
+            });
+
+
+
+//conditions for excluding dates
+            const handleExclude = (e) => {
+                const selectedDate = e.target.value;
+
+                if (selectedDate >= start && selectedDate <= end) {
+
+                    if (!excludedDates.includes(selectedDate)) {
+
+                        const updatedExcludedDates = [...excludedDates, selectedDate];
+
+                        setExcludedDates(updatedExcludedDates);
+                    } else {
+
+                        alert('This date is already excluded.');
+
+                    }
+                }
+            };
+
+
+            const handleStartChange = (e) => {
+                setStart(e.target.value);
+                // Calculate the minimum allowed end date based on the selected start date
+                const minEndDate = new Date(e.target.value);
+                minEndDate.setDate(minEndDate.getDate() + 1); // Add one day to the selected start date
+                setMinEndDate(minEndDate.toISOString().split('T')[0]); // Set the minimum end date
+                calculateMonthAndYear(e.target.value, end);
+            };
+
+            const handleEndChange = (e) => {
+                // Check if the selected end date is after or equal to the minimum allowed end date
+                if (e.target.value >= minEndDate) {
+                    setEnd(e.target.value);
+                    calculateMonthAndYear(start, e.target.value);
+                } else {
+                    // If the selected end date is before the minimum allowed end date, set end date to the minimum allowed end date
+                    setEnd(minEndDate);
+                    calculateMonthAndYear(start, minEndDate);
+                }
+            };
+
+            const calculateMonthAndYear = (startDate, endDate) => {
+                const startMonth = new Date(startDate).getMonth() + 1;
+                const startYear = new Date(startDate).getFullYear();
+                const endMonth = new Date(endDate).getMonth() + 1;
+                const endYear = new Date(endDate).getFullYear();
+
+                setSelectedMonth(`${startMonth} - ${endMonth}`);
+                setSelectedYear(`${startYear} - ${endYear}`);
+            };
+
+
+            const calculateNumberOfDays = () => {
+                // Create an array of dates between start and end dates (inclusive)
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                const datesArray = [];
+                for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+                    datesArray.push(new Date(date))
+                }
+                
+                // Exclude the selected dates
+                const filteredDatesArray = datesArray.filter(date => !excludedDates.includes(date.toISOString().split('T')[0]));
+
+                const joinedDates = filteredDatesArray.join(',');
+                // Calculate the number of days
+                const numberOfDays = filteredDatesArray.length;
+                
+                if (numberOfDays === 1 && excludedDates.length > numberOfDays) {
+        // Disable the exclude date picker
+        document.getElementById('exclude-date-picker').disabled = true;
+        alert('you cant exclude all the date')
+    } else {
+        // Enable the exclude date picker
+        document.getElementById('exclude-date-picker').disabled = false;
+
+        
+    }
+    setNumberOfDays(numberOfDays);
+
+
+
+            };
+
+            const handleleads = (e) => {
+                let leads = (e.target.value)
+                setNumberOfLeads(leads)
+
+            }
+          
+            function showMessage() {
+    var message = document.getElementById("select-date-message");
+    message.style.display = "block";
+}
+function dontshowMessage() {
+    var message = document.getElementById("select-date-message");
+    message.style.display = "none";
+}
+
+            
+            // Update the useEffect hook to recalculate the number of days when excluded dates change
+            useEffect(() => {
+                calculateNumberOfDays();
+                const drr = numberOfDays * numberOfLeads;
+        setexpected(drr);
+            },[excludedDates, numberOfDays, numberOfLeads]);
+
+
+            
+// Function to handle the form submission
+function handleFormSubmission() {
+ 
+  const data = {
+    id: idstate,
+                    start_date: start,
+                    end_date: end,
+                    months: selectedMonth,
+                    years: selectedYear,
+                    excluded_dates: excludedDates,
+                    days: numberOfDays,
+                    lead_count: numberOfLeads,
+                    expected_DRR: expected,
+  };
+
+  // Send data to the server using Fetch API
+  fetch('http://localhost:3000/api/data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Failed to submit data.');
+      }
+    })
+    .then(responseData => {
+      // Handle the server's response, if needed
+      console.log('Data submitted successfully:', responseData);
+    })
+    .catch(error => {
+      // Handle any errors
+      console.error('Error:', error);
+    });
+}
+
+
+
+
+            const heading = ['action', 'id', 'start-date', 'end-date', 'months', 'years', 'dates-excluded', 'days', 'lead-count', 'expected-DRR', 'last-updated'];
+
+            return (
+                <div style={{ display: 'flex' }}>
+                    
+                    <table border='1px' style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        backgroundColor: 'white',
+                        margin: '2px',
+                        borderRadius: '10px',
+                    }}>
+                        <thead>
+                            <tr style={{ height: '50px',backgroundColor:'#DCF4CE' }}>
+                                {heading.map((key, id) => (
+                                    <td key={id} style={{
+                                        textAlign: 'center', padding: '5px',fontWeight:'bold'
+                                    }}>{key}</td>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>{Astate}</td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>{idstate}</td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>
+                                    <input type="date" id="start" value={start} onChange={handleStartChange}></input>
+
+                                </td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>
+                                    <input type="date" id="end" value={end} onChange={handleEndChange} min={minEndDate}></input>
+
+                                </td>
+
+                                <td style={{ textAlign: 'center', padding: '5px' }}>{selectedMonth}</td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>{selectedYear}</td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>
+                                    <p id="select-date-message">select atleast one date</p>
+                                    <input type="date" value={''} onChange={handleExclude} min={start} max={end} id="exclude-date-picker" disabled={numberOfDays === 1 && excludedDates.length > numberOfDays} onFocus={showMessage} onBlur={dontshowMessage}></input>
+                                    {/* Display the selected excluded dates */}
+                                    <ul>
+                                        {excludedDates.map((date, index) => (
+                                            <li style={{ listStyle: 'none' }} key={index}>{date}</li>
+                                        ))}
+                                    </ul>
+                                </td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}>{numberOfDays} </td>
+
+                                <td style={{ textAlign: 'center', padding: '5px' }}>
+                                    <input type="text" value={numberOfLeads} onChange={handleleads} ></input>
+                                </td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}><input type="text" value={expected} onChange={(e) => setexpected(e.target.value)}></input></td>
+                                <td style={{ textAlign: 'center', padding: '5px' }}><input style={{
+
+                                    padding: '0.7em',
+                                    backgroundColor: 'transparent',
+                                    textDecoration: 'none',
+                                    border: 'none',
+                                    borderRadius: '0.5em',
+                                    color: 'green',
+                                    border:'1px solid black',
+                                    fontWeight:'bold',
+                                    margin:"2px",
+                                    cursor:'pointer'
+
+                                }} type="submit" value="save" onClick={handleFormSubmission}></input><br/>
+                                    <input style={{
+
+                                        padding: '0.7em',
+                                        backgroundColor: 'transparent',
+                                        textDecoration: 'none',
+                                        border: 'none',
+                                        borderRadius: '0.5em',
+                                        color: '#BF0426',
+                                        border:'1px solid #BF0426',
+                                    cursor:'pointer',
+                                    fontWeight:'bold',
+                                    margin:"2px"
+
+                                    }} type="submit" value="cancle"></input></td>
+                            </tr>
+
+                            {items.map((item, index) => (
+                                <tr key={index}>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}><button className="tooltip" onClick={() => handleRemove(index)}>
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" height="25" width="25">
+                                        <path fill="#6361D9" d="M8.78842 5.03866C8.86656 4.96052 8.97254 4.91663 9.08305 4.91663H11.4164C11.5269 4.91663 11.6329 4.96052 11.711 5.03866C11.7892 5.11681 11.833 5.22279 11.833 5.33329V5.74939H8.66638V5.33329C8.66638 5.22279 8.71028 5.11681 8.78842 5.03866ZM7.16638 5.74939V5.33329C7.16638 4.82496 7.36832 4.33745 7.72776 3.978C8.08721 3.61856 8.57472 3.41663 9.08305 3.41663H11.4164C11.9247 3.41663 12.4122 3.61856 12.7717 3.978C13.1311 4.33745 13.333 4.82496 13.333 5.33329V5.74939H15.5C15.9142 5.74939 16.25 6.08518 16.25 6.49939C16.25 6.9136 15.9142 7.24939 15.5 7.24939H15.0105L14.2492 14.7095C14.2382 15.2023 14.0377 15.6726 13.6883 16.0219C13.3289 16.3814 12.8414 16.5833 12.333 16.5833H8.16638C7.65805 16.5833 7.17054 16.3814 6.81109 16.0219C6.46176 15.6726 6.2612 15.2023 6.25019 14.7095L5.48896 7.24939H5C4.58579 7.24939 4.25 6.9136 4.25 6.49939C4.25 6.08518 4.58579 5.74939 5 5.74939H6.16667H7.16638ZM7.91638 7.24996H12.583H13.5026L12.7536 14.5905C12.751 14.6158 12.7497 14.6412 12.7497 14.6666C12.7497 14.7771 12.7058 14.8831 12.6277 14.9613C12.5495 15.0394 12.4436 15.0833 12.333 15.0833H8.16638C8.05588 15.0833 7.94989 15.0394 7.87175 14.9613C7.79361 14.8831 7.74972 14.7771 7.74972 14.6666C7.74972 14.6412 7.74842 14.6158 7.74584 14.5905L6.99681 7.24996H7.91638Z" clipRule="evenodd" fillRule="evenodd"></path>
+                                    </svg>
+                                    </button></td>
+
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{index}</td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.start_date}</td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.end_date}</td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.months}</td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.years}</td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.excluded_dates}</td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.days}</td>
+
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.lead_count} </td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.expected_DRR} </td>
+                                    <td style={{ textAlign: 'center', padding: '5px' }}>{item.current} </td>
+
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+                    </table>
+                    
+
+                </div>
+            )
+        }
+        ReactDOM.render(<App />, table);
+    </script>
+</body>
+
+</html>
